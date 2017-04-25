@@ -40,7 +40,7 @@ void KalmanFilter::Update(const VectorXd &z) {
       calc x based on K
       calc P based on S and R
   */
-  VectorXd y = VectorXd(2,1);
+  VectorXd y = VectorXd(2);
   y = z - H_ * x_;
   std::cout << "y is" << y << std::endl;
 
@@ -65,4 +65,20 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
+  // H_ = CalculateJacobian(x_);
+  std::cout << "new jacob" << std::endl;
+  VectorXd y = z - H_ * x_;
+  std::cout << "before norm" << y(1) << std::endl;
+  // y(1) = atan2(y(1));
+  // std::cout << "normed y" << y(1) << std::endl;
+  MatrixXd S = H_ * P_ * H_.transpose() + R_;
+  MatrixXd K = P_ * H_.transpose() * S.inverse();
+  x_ = x_ + K * y;
+  std::cout << "new x radar" << std::endl;
+
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K*H_) * P_;
+  std::cout << "new P radar" << std::endl;
+
 }
