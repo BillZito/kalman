@@ -22,6 +22,10 @@ FusionEKF::FusionEKF() {
   H_laser_ = MatrixXd(2, 4);
   Hj_ = MatrixXd(3, 4);
 
+  // F = MatrixXd(4, 4);
+  // Q = MatrixXd(4, 4);
+  // P = MatrixXd(4, 4);
+
   //measurement covariance matrix - laser
   R_laser_ << 0.0225, 0,
         0, 0.0225;
@@ -36,6 +40,12 @@ FusionEKF::FusionEKF() {
     * Finish initializing the FusionEKF.
     * Set the process and measurement noises
   */
+  H_laser_ << 1, 0, 0, 0,
+              0, 1, 0, 0;
+
+  // Hj_ << 0,
+  //        0,
+  //        0;
 
 
 }
@@ -67,11 +77,40 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
+      // Hj = 
+      // ekf_.x = 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
       Initialize state.
       */
+      // cout << "start inti: " << endl;
+      previous_timestamp_ = measurement_pack.timestamp_;
+
+      ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 0, 0;
+      // cout << "after x " << endl;
+
+      ekf_.F_ = MatrixXd(4, 4);
+      ekf_.F_ << 1, 0, 1, 0,
+                 0, 1, 0, 1,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1;
+      // cout << "after f " << endl;
+  
+      ekf_.Q_ = MatrixXd(4, 4);
+      // ekf_.Q_ << 1, 0, 1, 0,
+      //            0, 1, 0, 1,
+      //            1, 0, 1, 0,
+      //            0, 1, 0, 1;
+
+      ekf_.P_ = MatrixXd(4, 4);
+      ekf_.P_ << 1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 1000, 0,
+                 0, 0, 0, 1000;
+
+      // cout << "after p " << endl;
+
     }
 
     // done initializing, no need to predict or update
@@ -85,11 +124,33 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   /**
    TODO:
-     * Update the state transition matrix F according to the new elapsed time.
+     x Update the state transition matrix F according to the new elapsed time.
       - Time is measured in seconds.
-     * Update the process noise covariance matrix.
-     * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
+     x Update the process noise covariance matrix.
+     x Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
+  long long incoming = measurement_pack.timestamp_;
+  float dt = (incoming - previous_timestamp_) / 100000.0;
+  previous_timestamp_ = incoming; 
+  // cout << "incoming time: " << incoming << endl; 
+  // cout << "dt: " << dt << endl;
+
+  ekf_.F_(0, 2) = dt;
+  ekf_.F_(1, 3) = dt;
+  // cout << "f set" << endl;
+
+  int noise_ax = 9;
+  int noise_ay = 9;
+
+  double dt_2 = dt * dt;
+  double dt_3 = dt_2 * dt;
+  double dt_4 = dt_3 * dt;
+
+  ekf_.Q_ << dt_4 * noise_ax / 4, 0, dt_3 * noise_ax / 2, 0,
+             0, dt_4 * noise_ay / 4, 0, dt_3 * noise_ay / 2,
+             dt_3 * noise_ax / 2, 0, dt_2 * noise_ax, 0,
+             0, dt_3 * noise_ay / 2, 0, dt_2 * noise_ay;  
+  // cout << "q set " << endl;
 
   ekf_.Predict();
 
@@ -107,6 +168,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // Radar updates
   } else {
     // Laser updates
+
   }
 
   // print the output
