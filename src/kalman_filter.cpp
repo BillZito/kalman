@@ -24,29 +24,25 @@ void KalmanFilter::Predict() {
   TODO:
     * predict the state
   */
-  std::cout << "before predict" << std::endl;
+  // std::cout << "before predict" << std::endl;
   x_ = F_ * x_;
   P_ = F_ * P_ * F_.transpose() + Q_;
-  std::cout << "after predict" << std::endl;
+  // std::cout << "after predict" << std::endl;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
   /**
   TODO:
     * update the state by using Kalman Filter equations
-      calc y, using Hlaser to move into sensor space
-      calc S based on variance and laser diff
-      calc K based on S and R (measurement err)
-      calc x based on K
-      calc P based on S and R
   */
+  // std::cout << "z lidar: " << z << std::endl;
   VectorXd y = VectorXd(2);
   y = z - H_ * x_;
-  std::cout << "y is" << y << std::endl;
+  // std::cout << "y is" << y << std::endl;
 
   MatrixXd S = MatrixXd(2, 2);
   S = H_ * P_ * H_.transpose() + R_;
-  std::cout << "S is" << S << std::endl;
+  // std::cout << "S is" << S << std::endl;
 
   MatrixXd K = MatrixXd(2, 2);
   K = P_ * H_.transpose() * S.inverse();
@@ -54,10 +50,10 @@ void KalmanFilter::Update(const VectorXd &z) {
   x_ = x_ + K * y;
 
   long x_size = x_.size();
-  std::cout << "xsize" << x_size << std::endl;
+  // std::cout << "xsize" << x_size << std::endl;
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K*H_) * P_;
-  std::cout << "pred complete" << std::endl;
+  // std::cout << "pred complete" << std::endl;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -65,20 +61,45 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
-  // H_ = CalculateJacobian(x_);
-  std::cout << "new jacob" << std::endl;
-  VectorXd y = z - H_ * x_;
-  std::cout << "before norm" << y(1) << std::endl;
-  // y(1) = atan2(y(1));
-  // std::cout << "normed y" << y(1) << std::endl;
+  // std::cout << "radar z: " << z << std::endl;
+  // std::cout << "new jacob" << std::endl;
+  // if (i < 5) {
+  //   std::cout << "xstarts: " << x_ << std::endl;
+  //   i += 1;
+  // }
+  float sqrt_sq = std::sqrt(x_(0) * x_(0) + x_(1) * x_(1));
+  if (sqrt_sq < 1e-6) 
+    sqrt_sq = 1e-6;
+  VectorXd h(3);
+
+  h << sqrt_sq, atan2(x_(1), x_(0)), (x_(0)*x_(2) + x_(1)*x_(3))/sqrt_sq;
+  VectorXd y = z - h;
+  while (y(1) > 3.1415) {
+    y(1) -= 6.2830;
+  }
+  while (y(1) < -3.1415) {
+    y(1) += 6.2830;
+  }
+  // if (y(1) > 3.14 || y(1) < -3.14) {
+  //   std::cout << "wrong one found " << y(1) << std::endl;
+  // }
+  // // std::cout << "h" << h << std::endl;
+  // // std::cout << "z" << z << std::endl;
+  // // std::cout << "y" << y << std::endl;
+  // // std::cout << "before norm" << y(1) << std::endl;
+  // // // y(1) = atan2(y(1));
+  // // std::cout << "normed y" << y(1) << std::endl;
+
   MatrixXd S = H_ * P_ * H_.transpose() + R_;
   MatrixXd K = P_ * H_.transpose() * S.inverse();
   x_ = x_ + K * y;
-  std::cout << "new x radar" << std::endl;
+  // // std::cout << "new x radar" << std::endl;
 
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K*H_) * P_;
-  std::cout << "new P radar" << std::endl;
+  // std::cout << "new P radar" << std::endl;
+  // x_ = x_;
+  // P_ = P_;
 
 }

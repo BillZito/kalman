@@ -44,8 +44,11 @@ private:
   Eigen::MatrixXd R_radar_;
   Eigen::MatrixXd H_laser_;
   Eigen::MatrixXd Hj_;
-  int noise_ax_;
-  int noise_ay_;
+  int noise_ax_ = 9;
+  int noise_ay_ = 9;
+  int sigma_ax = 13;
+  int sigma_ay = 13;
+  int num_printed = 0;
 };
 
 #endif /* FusionEKF_H_ */
