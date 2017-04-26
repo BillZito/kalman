@@ -156,10 +156,6 @@ int main(int argc, char* argv[]) {
       out_file_ << ro * cos(phi) << "\t"; // p1_meas
       out_file_ << ro * sin(phi) << "\t"; // ps_meas
     }
-    // if (count < 5) {
-    //   cout << "actual ans" << gt_pack_list[k].gt_values_ << endl;
-    //   count += 1;
-    // }
 
     // output the ground truth packages
     out_file_ << gt_pack_list[k].gt_values_(0) << "\t";

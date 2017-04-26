@@ -46,9 +46,6 @@ private:
   Eigen::MatrixXd Hj_;
   int noise_ax_ = 9;
   int noise_ay_ = 9;
-  int sigma_ax = 13;
-  int sigma_ay = 13;
-  int num_printed = 0;
 };
 
 #endif /* FusionEKF_H_ */
